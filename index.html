@@ -42,8 +42,7 @@
         table td.label {
             font-weight: bold;
             text-align: center;
-            width: 35%;
-            white-space: nowrap;
+            width: 30%;
         }
         table td.value { text-align: left; }
         .error {
@@ -71,6 +70,15 @@
             return new URLSearchParams(window.location.search).get(name);
         }
 
+        function esc(s) {
+            return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        // 多条结论按两个空格分隔拆成多行显示（与参考样式一致）
+        function multiline(s) {
+            return esc(s).split(/\s{2,}/).filter(Boolean).join('<br>');
+        }
+
         function renderReport(report) {
             const header = '<div class="header">该报告主要信息已上传至市住建委"北京市城镇房屋建筑使用安全管理系统"</div>';
             const rows = [
@@ -89,9 +97,13 @@
             ];
             let tableRows = '';
             rows.forEach(function (r) {
-                tableRows += '<tr><td class="label">' + r[0] + '</td><td class="value">' + r[1] + '</td></tr>';
+                const val = (r[0] === '评估鉴定结论' || r[0] === '评估鉴定结论解释')
+                    ? multiline(r[1])
+                    : esc(r[1]);
+                tableRows += '<tr><td class="label">' + r[0] + '</td><td class="value">' + val + '</td></tr>';
             });
             document.getElementById('content').innerHTML = header + '<table>' + tableRows + '</table>';
+            document.title = '';
         }
 
         function renderError(msg) {
