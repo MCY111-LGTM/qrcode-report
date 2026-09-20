@@ -32,12 +32,17 @@
             border-collapse: collapse;
             margin-bottom: 20px;
         }
+        /* 只保留内部网格线：每格有上边线，值列有左边线（与标签列的分隔），外围不加框 */
         table td {
-            border: 1px solid #000;
-            padding: 7px 8px;
+            border: none;
+            border-top: 1px solid #000;
+            padding: 5px 6px;
             font-size: 14px;
-            line-height: 1.6;
+            line-height: 1.5;
             vertical-align: top;
+        }
+        table td.value {
+            border-left: 1px solid #000;
         }
         table td.label {
             font-weight: bold;
