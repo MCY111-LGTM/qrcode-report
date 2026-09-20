@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <title>房屋安全鉴定报告</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -26,13 +27,6 @@
             border-bottom: none;
             background: #fff;
         }
-        .header .title {
-            font-size: 16px;
-        }
-        .header .sub {
-            font-size: 14px;
-            margin-top: 5px;
-        }
         table {
             width: 100%;
             border-collapse: collapse;
@@ -51,14 +45,7 @@
             width: 35%;
             white-space: nowrap;
         }
-        table td.value {
-            text-align: left;
-        }
-        .report-code {
-            text-align: center;
-            font-size: 14px;
-            margin: 10px 0 20px;
-        }
+        table td.value { text-align: left; }
         .error {
             text-align: center;
             padding: 40px 20px;
@@ -79,22 +66,13 @@
         </div>
     </div>
 
-    <script src="data.js"></script>
     <script>
         function getQueryParam(name) {
-            const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get(name);
+            return new URLSearchParams(window.location.search).get(name);
         }
 
         function renderReport(report) {
-            const content = document.getElementById('content');
-            
-            const header = `
-                <div class="header">
-                    <div class="title">该报告主要信息已上传至市住建委"北京市城镇房屋建筑使用安全管理系统"</div>
-                </div>
-            `;
-
+            const header = '<div class="header">该报告主要信息已上传至市住建委"北京市城镇房屋建筑使用安全管理系统"</div>';
             const rows = [
                 ['报告类型', report.type || ''],
                 ['报告唯一编码', report.code || ''],
@@ -109,39 +87,36 @@
                 ['批准人', report.approver || ''],
                 ['鉴定人', report.appraisers || '']
             ];
-
             let tableRows = '';
-            rows.forEach(([label, value]) => {
-                tableRows += `
-                    <tr>
-                        <td class="label">${label}</td>
-                        <td class="value">${value}</td>
-                    </tr>
-                `;
+            rows.forEach(function (r) {
+                tableRows += '<tr><td class="label">' + r[0] + '</td><td class="value">' + r[1] + '</td></tr>';
             });
-
-            content.innerHTML = header + `<table>${tableRows}</table>`;
+            document.getElementById('content').innerHTML = header + '<table>' + tableRows + '</table>';
         }
 
         function renderError(msg) {
-            document.getElementById('content').innerHTML = `<div class="error">${msg}</div>`;
+            document.getElementById('content').innerHTML = '<div class="error">' + msg + '</div>';
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            const code = getQueryParam('code');
+        function start() {
+            let code = getQueryParam('code');
             if (!code) {
-                renderError('未指定报告编号');
-                return;
+                // 直接打开页面（不带编号）时，默认显示第一份报告，便于预览
+                const keys = Object.keys(window.REPORT_DATA);
+                if (!keys.length) { renderError('暂无报告数据'); return; }
+                code = keys[0];
             }
-
             const report = window.REPORT_DATA[code];
-            if (!report) {
-                renderError('未找到该报告');
-                return;
-            }
-
+            if (!report) { renderError('未找到该报告'); return; }
             renderReport(report);
-        });
+        }
+
+        // 动态加载数据文件并附加时间戳，避免微信/浏览器缓存旧内容
+        const script = document.createElement('script');
+        script.src = 'data.js?v=' + Math.floor(Date.now() / 1000);
+        script.onload = start;
+        script.onerror = function () { renderError('数据加载失败，请稍后重试'); };
+        document.body.appendChild(script);
     </script>
 </body>
 </html>
